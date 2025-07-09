@@ -62,7 +62,7 @@ namespace SpaceTrans.Engines
                 var response = await httpClient.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}", content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                Logger.Instance.Info($"Gemini response: {responseContent}");
+                Logger.Instance.Debug($"Gemini response: {responseContent}");
 
                 var jsonDoc = JsonDocument.Parse(responseContent);
                 if (jsonDoc.RootElement.TryGetProperty("candidates", out var candidates) && 

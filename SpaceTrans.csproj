@@ -91,10 +91,11 @@
     <ItemGroup>
       <PackageFiles Include="$(PublishDir)$(AssemblyName).exe" />
       <PackageFiles Include="README.md" />
-      <PackageFiles Include="config-example.json" Condition="Exists('config.json')" />
     </ItemGroup>
     
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(PackageDir)" />
+    
+    <Copy SourceFiles="config-example.json" DestinationFiles="$(PackageDir)\config.json" Condition="Exists('config-example.json')" />
     
     <!-- Create ZIP using PowerShell (Windows) -->
     <Exec Command="powershell -command &quot;Compress-Archive -Path '$(PackageDir)\*' -DestinationPath '$(ReleaseFile)' -Force&quot;" 
