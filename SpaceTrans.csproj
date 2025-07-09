@@ -1,0 +1,133 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <AssemblyName>SpaceTrans</AssemblyName>
+    <RootNamespace>SpaceTrans</RootNamespace>
+    <Product>SpaceTrans</Product>
+    <AssemblyTitle>SpaceTrans - Quick Translation Tool</AssemblyTitle>
+    <AssemblyDescription>A fast translation tool activated by double-space hotkey</AssemblyDescription>
+    <AssemblyCompany>SpaceTrans</AssemblyCompany>
+    <Copyright>Copyright © 2024 SpaceTrans</Copyright>
+    <Version>1.0.0</Version>
+    <Type>tray</Type>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Type)'=='cli'">
+    <DefineConstants>$(DefineConstants);CLI</DefineConstants>
+    <AssemblyName>SpaceTrans-CLI</AssemblyName>
+    <UseWindowsForms>true</UseWindowsForms>
+    <SelfContained>True</SelfContained>
+    <!-- CLI版本基础优化设置 -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+    <DebuggerSupport>false</DebuggerSupport>
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Type)'=='tray'">
+    <DefineConstants>$(DefineConstants);TRAY</DefineConstants>
+    <AssemblyName>SpaceTrans-Tray</AssemblyName>
+    <UseWindowsForms>true</UseWindowsForms>
+    <SelfContained>True</SelfContained>
+    <OutputType>WinExe</OutputType>
+    <!-- Tray版本优化设置 - 禁用修剪以兼容WinForms -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 移除不必要的加密算法包，.NET 8已内置 -->
+    <!-- <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" /> -->
+  </ItemGroup>
+
+
+  <!-- Conditional compilation for source files -->
+  <ItemGroup Condition="'$(Type)'=='tray'">
+    <Compile Remove="ConsoleApplication.cs" />
+    <None Include="ConsoleApplication.cs" />
+  </ItemGroup>
+
+    <ItemGroup Condition="'$(Type)'=='cli'">
+    <Compile Remove="TrayApplication.cs" />
+    <Compile Remove="SettingsForm.cs" />
+    <None Include="TrayApplication.cs" />
+    <None Include="SettingsForm.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\icon.ico" />
+  </ItemGroup>
+
+  <Target Name="CustomClean" AfterTargets="Clean">
+    <Message Text="🧹 Cleaning SpaceTrans artifacts..." Importance="high" />
+    <!-- Remove obj folder -->
+    <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
+    <!-- Remove bin folder -->
+    <RemoveDir Directories="$(BaseOutputPath)" />
+    <RemoveDir Directories="dist;releases" Condition="Exists('dist') Or Exists('releases')" />
+  </Target>
+
+  <Target Name="Package" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)'!=''">
+    <PropertyGroup>
+      <PackageDir>dist\package</PackageDir>
+      <ReleaseFile>releases\$(AssemblyName)-v$(Version)-$(RuntimeIdentifier).zip</ReleaseFile>
+    </PropertyGroup>
+    
+    <Message Text="📦 Creating release package..." Importance="high" />
+    
+    <!-- Create package directory -->
+    <MakeDir Directories="$(PackageDir);releases" />
+    
+    <!-- Copy files to package -->
+    <ItemGroup>
+      <PackageFiles Include="$(PublishDir)$(AssemblyName).exe" />
+      <PackageFiles Include="README.md" />
+      <PackageFiles Include="config-example.json" Condition="Exists('config.json')" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(PackageDir)" />
+    
+    <!-- Create ZIP using PowerShell (Windows) -->
+    <Exec Command="powershell -command &quot;Compress-Archive -Path '$(PackageDir)\*' -DestinationPath '$(ReleaseFile)' -Force&quot;" 
+          Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    
+    <!-- Create ZIP using zip command (Linux/Mac) -->
+    <Exec Command="cd $(PackageDir) &amp;&amp; zip -r ../../$(ReleaseFile) ." 
+          Condition="!$([MSBuild]::IsOSPlatform('Windows'))" />
+    
+    <Message Text="✅ Package created: $(ReleaseFile)" Importance="high" />
+  </Target>
+
+  <Target Name="ReleaseCLI">
+    <Message Text="🚀 Building CLI version..." Importance="high" />
+    <MSBuild Projects="$(MSBuildProjectFile)" 
+             Targets="Publish" 
+             Properties="Configuration=release;Type=cli;RuntimeIdentifier=win-x64;
+             SelfContained=true;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true;PublishDir=dist\cli\" />
+  </Target>
+
+  <Target Name="ReleaseTray">
+    <Message Text="🚀 Building Tray version..." Importance="high" />
+    <MSBuild Projects="$(MSBuildProjectFile)" 
+             Targets="Publish" 
+             Properties="Configuration=release;Type=tray;RuntimeIdentifier=win-x64;
+             SelfContained=true;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true;PublishDir=dist\tray\" />
+  </Target>
+
+  <Target Name="ReleaseBoth" DependsOnTargets="ReleaseCLI;ReleaseTray">
+    <Message Text="✅ Both versions built successfully!" Importance="high" />
+  </Target>
+
+</Project>

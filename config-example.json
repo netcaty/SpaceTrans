@@ -1,0 +1,11 @@
+{
+  "CurrentEngine": "Gemini",
+  "TargetLanguage": "en",
+  "YoudaoConfig": {
+    "AppKey": "",
+    "AppSecret": ""
+  },
+  "GeminiConfig": {
+    "ApiKey": ""
+  }
+}

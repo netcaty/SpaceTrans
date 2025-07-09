@@ -1,0 +1,23 @@
+# .NET 项目通用忽略规则
+bin/
+obj/
+dist/
+*.user
+*.suo
+*.cache
+*.pdb
+*.exe
+*.dll
+
+# 项目特定忽略规则
+releases/
+config.json
+
+# IDE/编辑器目录
+.vs/
+.idea/
+.vscode/
+.claude/
+
+# NuGet 包目录
+packages/
