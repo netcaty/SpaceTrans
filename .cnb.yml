@@ -1,0 +1,28 @@
+include:
+    - "https://cnb.cool/netcat1/ci-templates/-/blob/main/template.yml"
+
+main: # 定义触发分支
+  push: # 定义触发事件
+    - env:
+        github_url: https://github.com/netcaty/SpaceTrans.git
+      stages:
+        - !reference [.sync-github]
+    - services:
+        - docker
+      stages: !reference [.build-docker]
+    
+$:
+  # vscode 事件：专供页面中启动远程开发用
+  vscode:
+    - docker:
+        # 自定义开发环境
+        image: docker.cnb.cool/netcat1/images/dev-full
+      services:
+        # 声明使用 vscode 服务
+        - vscode
+        # 声明在容器中支持 docker 命令
+        - docker
+      stages:
+        # 环境启动后需要执行的命令
+        - name: pip install
+          script: pip install -r requirements.txt
