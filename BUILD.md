@@ -50,6 +50,7 @@ releases/
    ```bash
    dotnet msbuild -t:ReleaseCli
    dotnet msbuild -t:ReleaseTray
+   dotnet msbuild -t:ReleaseTray-net8
    ```
 
 ## MSBuild Targets

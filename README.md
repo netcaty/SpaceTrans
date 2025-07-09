@@ -79,6 +79,13 @@ dotnet build -c Release
 ### Self-Contained Executable
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+or
+# CLI
+dotnet msbuild -t:ReleaseCli
+# Tray
+dotnet msbuild -t:ReleaseTray
+# Tray, but requires .NET 8
+dotnet msbuild -t:ReleaseTray-net8
 ```
 
 ## Custom Icon
