@@ -1,6 +1,10 @@
 # SpaceTrans .NET CLI
 
+> 🇨🇳 [中文文档 README-CN.md](README-CN.md)
+
 A .NET console and tray application that provides instant translation with double-space hotkey activation.
+
+![demo](docs/screen2.gif)
 
 ## Features
 
