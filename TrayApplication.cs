@@ -154,7 +154,7 @@ namespace SpaceTrans
         private void OnAbout(object sender, EventArgs e)
         {
             MessageBox.Show(
-                "SpaceTrans v1.0\n\nA fast translation tool with global hotkey support.\n\nDouble-press Space to translate text when you type anywhere.\n\nRight-click tray icon to access log file and settings.",
+                "SpaceTrans v1.0\n\nA fast translation tool with global hotkey support.\n\nTriple-press Space to translate text when you type anywhere.\n\nRight-click tray icon to access log file and settings.",
                 "About SpaceTrans",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);

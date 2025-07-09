@@ -170,7 +170,8 @@ namespace SpaceTrans
                     CooldownMs = 2000,
                     RequireTextSelection = true,
                     EnableContentValidation = true,
-                    MinContentLength = 2
+                    MinContentLength = 2,
+                    RequiredSpaceCount = 3
                 }
             };
         }
@@ -204,5 +205,6 @@ namespace SpaceTrans
         public bool RequireTextSelection { get; set; } = true;
         public bool EnableContentValidation { get; set; } = true;
         public int MinContentLength { get; set; } = 2;
+        public int RequiredSpaceCount { get; set; } = 3; // 需要连续按3次空格
     }
 }

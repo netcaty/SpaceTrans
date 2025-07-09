@@ -2,7 +2,7 @@
 
 > [English Document README.md](README-en.md)
 
-一个基于 .NET 的控制台与系统托盘翻译工具，支持双空格快捷键即时翻译。
+一个基于 .NET 的控制台与系统托盘翻译工具，支持三次空格快捷键即时翻译。
 
 ## 🚀 使用演示
 
@@ -10,7 +10,7 @@
 
 ## 功能特性
 
-- **全局快捷键检测**（双击空格）
+- **全局快捷键检测**（连续三次空格）
 - **智能内容识别自动翻译**
 - **多翻译引擎支持**（有道 API、Google Gemini）
 - **系统托盘集成** 带状态指示
@@ -41,7 +41,7 @@ SpaceTrans-CLI.exe
 
 ### 快捷翻译流程
 1. 在任意输入框中打字
-2. 按下 **两次空格键** 即可翻译输入的内容
+2. 按下 **三次空格键** 即可翻译输入的内容
 3. 翻译结果将自动替换原文字
 
 ## 配置说明
@@ -97,7 +97,7 @@ dotnet msbuild -t:ReleaseTray-net8
 
 ## 自定义图标
 
-请将自定义图标 [icon.ico](file:///mnt/c/Users/netcat/Desktop/YoudaoTranslator/Resources/icon.ico) 放入应用程序目录，或嵌入到资源 [Resources/icon.ico](file:///mnt/c/Users/netcat/Desktop/YoudaoTranslator/Resources/icon.ico) 中。
+请将自定义图标 [icon.ico](Resources/icon.ico) 放入应用程序目录，或嵌入到资源 [Resources/icon.ico](Resources/icon.ico) 中。
 
 ## 系统托盘功能
 
@@ -133,7 +133,7 @@ SpaceTrans 自动记录所有操作日志，便于调试和监控：
 
 ## 快捷键说明
 
-- **双击空格键**：翻译当前选中文本
+- **三击空格键**：翻译当前选中文本
 - **托盘菜单**：切换快捷键开关、打开日志、进入设置
 - **双击托盘图标**：直接打开设置界面
 

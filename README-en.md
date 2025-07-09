@@ -2,13 +2,13 @@
 
 > [中文文档 README.md](README.md)
 
-A .NET console and tray application that provides instant translation with double-space hotkey activation.
+A .NET console and tray application that provides instant translation with triple-space hotkey activation.
 
 ![demo](docs/screen2.gif)
 
 ## Features
 
-- **Global hotkey detection** (double space)
+- **Global hotkey detection** (triple space)
 - **Automatic text translation** with intelligent content detection
 - **Multiple translation engines** (Youdao API, Google Gemini)
 - **System tray integration** with visual status indicators
@@ -27,7 +27,7 @@ A .NET console and tray application that provides instant translation with doubl
 SpaceTrans-Tray.exe
 ```
 - Runs in system tray
-- Double-click tray icon for settings
+- Triple-click tray icon for settings
 - Right-click for menu options
 
 ### Console Mode
@@ -39,13 +39,13 @@ SpaceTrans-CLI.exe
 
 ### Quick Translation
 1. type any text in any application
-2. **Double-press Space** to translate inputed content
+2. **triple-press Space** to translate inputed content
 3. Translation automatically replaces inputed text
 
 ## Configuration
 
 ### First Run Setup
-1. Double-click tray icon to open settings
+1. triple-click tray icon to open settings
 2. Configure your preferred translation engine:
    - **Youdao**: Requires App Key and App Secret
    - **Gemini**: Requires Google API Key
@@ -130,9 +130,9 @@ SpaceTrans automatically logs all activities to help with debugging and monitori
 
 ## Keyboard Shortcuts
 
-- **Double Space**: Translate selected text
+- **triple Space**: Translate selected text
 - **Tray Menu**: Toggle hotkey on/off, open log file, access settings
-- **Double-click Tray Icon**: Open settings directly
+- **triple-click Tray Icon**: Open settings directly
 
 ## Translation Engines
 

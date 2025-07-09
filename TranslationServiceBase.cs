@@ -16,6 +16,7 @@ namespace SpaceTrans
         protected const int VK_SPACE = 0x20;
 
         protected static DateTime lastSpaceTime = DateTime.MinValue;
+        protected static DateTime secondLastSpaceTime = DateTime.MinValue;
         protected static LowLevelKeyboardProc _proc;
         protected static IntPtr _hookID = IntPtr.Zero;
         protected static readonly HttpClient httpClient = new();
@@ -29,11 +30,12 @@ namespace SpaceTrans
         public bool hotkeyEnabled = true;
         
         // 优化参数
-        protected static int minSpaceInterval = 100; // 最小间隔从50ms增加到100ms
-        protected static int maxSpaceInterval = 800; // 最大间隔从500ms增加到800ms
+        protected static int minSpaceInterval = 100; // 最小间隔100ms
+        protected static int maxSpaceInterval = 800; // 最大间隔800ms
         protected static bool requireTextSelection = true; // 需要有文本选择才触发
         protected static DateTime lastTranslationTime = DateTime.MinValue;
         protected static int cooldownMs = 2000; // 2秒冷却时间
+        protected static int requiredSpaceCount = 3; // 需要连续3次空格
 
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -65,8 +67,9 @@ namespace SpaceTrans
             maxSpaceInterval = spaceOpt.MaxInterval;
             cooldownMs = spaceOpt.CooldownMs;
             requireTextSelection = spaceOpt.RequireTextSelection;
+            requiredSpaceCount = spaceOpt.RequiredSpaceCount;
             
-            Logger.Instance?.Info($"Space optimization loaded: min={minSpaceInterval}ms, max={maxSpaceInterval}ms, cooldown={cooldownMs}ms");
+            Logger.Instance?.Info($"Space optimization loaded: min={minSpaceInterval}ms, max={maxSpaceInterval}ms, cooldown={cooldownMs}ms, requiredCount={requiredSpaceCount}");
             
             // Register Youdao engine
             if (!string.IsNullOrEmpty(config.YoudaoConfig.AppKey))
@@ -141,35 +144,39 @@ namespace SpaceTrans
             {
                 // 使用高精度时间戳并在后台线程中处理
                 var currentTime = DateTime.UtcNow;
-                var timeDiff = currentTime - lastSpaceTime;
+                var timeDiff1 = currentTime - lastSpaceTime;
+                var timeDiff2 = lastSpaceTime - secondLastSpaceTime;
 
-                // 优化的时间间隔判断
-                if (timeDiff.TotalMilliseconds < maxSpaceInterval && timeDiff.TotalMilliseconds > minSpaceInterval)
+                // 检查三次连续空格的时间间隔
+                if (timeDiff1.TotalMilliseconds < maxSpaceInterval && timeDiff1.TotalMilliseconds > minSpaceInterval &&
+                    timeDiff2.TotalMilliseconds < maxSpaceInterval && timeDiff2.TotalMilliseconds > minSpaceInterval)
                 {
                     // 冷却时间检查
                     var cooldownDiff = currentTime - lastTranslationTime;
                     if (cooldownDiff.TotalMilliseconds < cooldownMs)
                     {
                         Logger.Instance?.Debug($"Translation in cooldown, remaining: {cooldownMs - cooldownDiff.TotalMilliseconds}ms");
-                        lastSpaceTime = currentTime;
-                        return CallNextHookEx(_hookID, nCode, wParam, lParam);
                     }
-
-                    // 异步处理，不阻塞钩子
-                    Task.Run(async () =>
+                    else
                     {
-                        try
+                        // 异步处理，不阻塞钩子
+                        Task.Run(async () =>
                         {
-                            Logger.Instance?.LogHotkeyEvent("Double space detected, checking conditions");
-                            await ProcessDoubleSpaceOptimized();
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Instance?.Error("Error in ProcessDoubleSpaceOptimized", ex);
-                        }
-                    });
+                            try
+                            {
+                                Logger.Instance?.LogHotkeyEvent("Triple space detected, triggering translation");
+                                await ProcessDoubleSpaceOptimized();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Instance?.Error("Error in ProcessDoubleSpaceOptimized", ex);
+                            }
+                        });
+                    }
                 }
 
+                // 更新时间戳
+                secondLastSpaceTime = lastSpaceTime;
                 lastSpaceTime = currentTime;
             }
 
@@ -378,20 +385,21 @@ namespace SpaceTrans
 
         // 配置优化参数的方法
         public void ConfigureSpaceOptimization(int minInterval = 100, int maxInterval = 800, 
-            int cooldown = 2000, bool requireSelection = true)
+            int cooldown = 2000, bool requireSelection = true, int spaceCount = 3)
         {
             minSpaceInterval = minInterval;
             maxSpaceInterval = maxInterval;
             cooldownMs = cooldown;
             requireTextSelection = requireSelection;
+            requiredSpaceCount = spaceCount;
             
-            Logger.Instance?.Info($"Space optimization configured: min={minInterval}ms, max={maxInterval}ms, cooldown={cooldown}ms, requireSelection={requireSelection}");
+            Logger.Instance?.Info($"Space optimization configured: min={minInterval}ms, max={maxInterval}ms, cooldown={cooldown}ms, requireSelection={requireSelection}, spaceCount={spaceCount}");
         }
 
         // 获取当前配置的方法
-        public (int minInterval, int maxInterval, int cooldown, bool requireSelection) GetSpaceOptimizationConfig()
+        public (int minInterval, int maxInterval, int cooldown, bool requireSelection, int spaceCount) GetSpaceOptimizationConfig()
         {
-            return (minSpaceInterval, maxSpaceInterval, cooldownMs, requireTextSelection);
+            return (minSpaceInterval, maxSpaceInterval, cooldownMs, requireTextSelection, requiredSpaceCount);
         }
 
         protected virtual void Cleanup()

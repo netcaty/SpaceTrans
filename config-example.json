@@ -7,5 +7,10 @@
   },
   "GeminiConfig": {
     "ApiKey": ""
+  },
+  "SpaceOptimization": {
+    "MinInterval": 100,
+    "MaxInterval": 800,
+    "CooldownMs": 2000
   }
 }
