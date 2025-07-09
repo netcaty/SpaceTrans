@@ -27,6 +27,13 @@ namespace SpaceTrans
         #endif
 
         public bool hotkeyEnabled = true;
+        
+        // 优化参数
+        protected static int minSpaceInterval = 100; // 最小间隔从50ms增加到100ms
+        protected static int maxSpaceInterval = 800; // 最大间隔从500ms增加到800ms
+        protected static bool requireTextSelection = true; // 需要有文本选择才触发
+        protected static DateTime lastTranslationTime = DateTime.MinValue;
+        protected static int cooldownMs = 2000; // 2秒冷却时间
 
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -51,6 +58,15 @@ namespace SpaceTrans
             engineManager = new TranslationEngineManager();
             
             var config = configManager.GetConfig();
+            
+            // 加载空格优化配置
+            var spaceOpt = config.SpaceOptimization;
+            minSpaceInterval = spaceOpt.MinInterval;
+            maxSpaceInterval = spaceOpt.MaxInterval;
+            cooldownMs = spaceOpt.CooldownMs;
+            requireTextSelection = spaceOpt.RequireTextSelection;
+            
+            Logger.Instance?.Info($"Space optimization loaded: min={minSpaceInterval}ms, max={maxSpaceInterval}ms, cooldown={cooldownMs}ms");
             
             // Register Youdao engine
             if (!string.IsNullOrEmpty(config.YoudaoConfig.AppKey))
@@ -127,19 +143,29 @@ namespace SpaceTrans
                 var currentTime = DateTime.UtcNow;
                 var timeDiff = currentTime - lastSpaceTime;
 
-                if (timeDiff.TotalMilliseconds < 500 && timeDiff.TotalMilliseconds > 50)
+                // 优化的时间间隔判断
+                if (timeDiff.TotalMilliseconds < maxSpaceInterval && timeDiff.TotalMilliseconds > minSpaceInterval)
                 {
+                    // 冷却时间检查
+                    var cooldownDiff = currentTime - lastTranslationTime;
+                    if (cooldownDiff.TotalMilliseconds < cooldownMs)
+                    {
+                        Logger.Instance?.Debug($"Translation in cooldown, remaining: {cooldownMs - cooldownDiff.TotalMilliseconds}ms");
+                        lastSpaceTime = currentTime;
+                        return CallNextHookEx(_hookID, nCode, wParam, lParam);
+                    }
+
                     // 异步处理，不阻塞钩子
                     Task.Run(async () =>
                     {
                         try
                         {
-                            Logger.Instance?.LogHotkeyEvent("Double space detected, triggering translation");
-                            await ProcessDoubleSpace();
+                            Logger.Instance?.LogHotkeyEvent("Double space detected, checking conditions");
+                            await ProcessDoubleSpaceOptimized();
                         }
                         catch (Exception ex)
                         {
-                            Logger.Instance?.Error("Error in ProcessDoubleSpace", ex);
+                            Logger.Instance?.Error("Error in ProcessDoubleSpaceOptimized", ex);
                         }
                     });
                 }
@@ -150,25 +176,43 @@ namespace SpaceTrans
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
-        protected async virtual Task ProcessDoubleSpace()
+        protected async virtual Task ProcessDoubleSpaceOptimized()
         {
             try
             {
-                var content = await GetActiveInputText();
+                // 预检查：快速获取选中文本长度
+                var content = await GetActiveInputTextOptimized();
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     Logger.Instance?.Debug("No content selected for translation");
                     return;
                 }
 
+                // 文本长度检查
+                if (content.Length < 2)
+                {
+                    Logger.Instance?.Debug("Content too short for translation");
+                    return;
+                }
+
+                // 检查是否为有效文本（避免翻译无意义字符）
+                if (!IsValidTextForTranslation(content))
+                {
+                    Logger.Instance?.Debug("Content not suitable for translation");
+                    return;
+                }
+
                 Logger.Instance?.LogTranslationStart(content);
+                
+                // 更新最后翻译时间
+                lastTranslationTime = DateTime.UtcNow;
                 
                 var config = configManager.GetConfig();
                 var currentEngine = engineManager.GetCurrentEngine();
                 var translatedContent = await engineManager.TranslateAsync(content, "auto", config.TargetLanguage);
                 
                 await SetClipboardTextWithRetry(translatedContent);
-                await SendKeysWithDelay("^a", 50);
+                //await SendKeysWithDelay("^a", 50);
                 await SendKeysWithDelay("^v", 50);
                 
                 Logger.Instance?.LogTranslationSuccess(content, translatedContent, currentEngine.Name);
@@ -176,25 +220,21 @@ namespace SpaceTrans
             }
             catch (Exception ex)
             {
-                Logger.Instance?.Error($"Translation failed during double space processing", ex);
+                Logger.Instance?.Error($"Translation failed during optimized double space processing", ex);
                 OnTranslationError($"Translation failed: {ex.Message}");
             }
         }
 
-
-        // Helper methods for clipboard and keyboard operations
-        protected static async Task<string> GetActiveInputText()
+        protected static async Task<string> GetActiveInputTextOptimized()
         {
             try
             {
-                var originalClipboard = await GetClipboardTextWithRetry();
-                
+                // 不保存原剪贴板内容，直接获取选中文本
                 await SendKeysWithDelay("^a", 30);
-                await SendKeysWithDelay("^c", 50);
+                await SendKeysWithDelay("^c", 30);
+                await Task.Delay(50); // 等待剪贴板更新
                 
                 var content = await GetClipboardTextWithRetry();
-                
-                await SetClipboardTextWithRetry(originalClipboard);
                 
                 return content;
             }
@@ -203,6 +243,29 @@ namespace SpaceTrans
                 return "";
             }
         }
+
+        protected static bool IsValidTextForTranslation(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+                
+            // 检查是否全是空格、换行符或标点符号
+            var trimmed = text.Trim();
+            if (trimmed.Length < 2)
+                return false;
+                
+            // 检查是否包含字母、数字或中文字符
+            foreach (char c in trimmed)
+            {
+                if (char.IsLetter(c) || char.IsDigit(c) || (c >= 0x4E00 && c <= 0x9FFF))
+                {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
 
         protected static async Task SendKeysWithDelay(string keys, int delayMs)
         {
@@ -312,6 +375,24 @@ namespace SpaceTrans
         protected abstract void OnTranslationWarning(string message);
         protected abstract void OnEngineError(string message);
         protected abstract void OnHotkeyError(string message);
+
+        // 配置优化参数的方法
+        public void ConfigureSpaceOptimization(int minInterval = 100, int maxInterval = 800, 
+            int cooldown = 2000, bool requireSelection = true)
+        {
+            minSpaceInterval = minInterval;
+            maxSpaceInterval = maxInterval;
+            cooldownMs = cooldown;
+            requireTextSelection = requireSelection;
+            
+            Logger.Instance?.Info($"Space optimization configured: min={minInterval}ms, max={maxInterval}ms, cooldown={cooldown}ms, requireSelection={requireSelection}");
+        }
+
+        // 获取当前配置的方法
+        public (int minInterval, int maxInterval, int cooldown, bool requireSelection) GetSpaceOptimizationConfig()
+        {
+            return (minSpaceInterval, maxSpaceInterval, cooldownMs, requireTextSelection);
+        }
 
         protected virtual void Cleanup()
         {

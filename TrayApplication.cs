@@ -365,10 +365,10 @@ namespace SpaceTrans
                 parent?.LogEvent($"Hotkey error: {message}", LogLevel.Error);
             }
 
-            protected override async Task ProcessDoubleSpace()
+            protected override async Task ProcessDoubleSpaceOptimized()
             {
                 parent?.UpdateTrayIcon("translating");
-                await base.ProcessDoubleSpace();
+                await base.ProcessDoubleSpaceOptimized();
             }
         }
     }

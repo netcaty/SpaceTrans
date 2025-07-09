@@ -162,6 +162,15 @@ namespace SpaceTrans
                 GeminiConfig = new GeminiConfig
                 {
                     ApiKey = ""
+                },
+                SpaceOptimization = new SpaceOptimizationConfig
+                {
+                    MinInterval = 100,
+                    MaxInterval = 800,
+                    CooldownMs = 2000,
+                    RequireTextSelection = true,
+                    EnableContentValidation = true,
+                    MinContentLength = 2
                 }
             };
         }
@@ -173,6 +182,7 @@ namespace SpaceTrans
         public string TargetLanguage { get; set; } = "en";
         public YoudaoConfig YoudaoConfig { get; set; } = new();
         public GeminiConfig GeminiConfig { get; set; } = new();
+        public SpaceOptimizationConfig SpaceOptimization { get; set; } = new();
     }
 
     public class YoudaoConfig
@@ -184,5 +194,15 @@ namespace SpaceTrans
     public class GeminiConfig
     {
         public string ApiKey { get; set; } = "";
+    }
+
+    public class SpaceOptimizationConfig
+    {
+        public int MinInterval { get; set; } = 100;
+        public int MaxInterval { get; set; } = 800;
+        public int CooldownMs { get; set; } = 2000;
+        public bool RequireTextSelection { get; set; } = true;
+        public bool EnableContentValidation { get; set; } = true;
+        public int MinContentLength { get; set; } = 2;
     }
 }
