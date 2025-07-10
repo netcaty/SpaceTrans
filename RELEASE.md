@@ -1,9 +1,9 @@
 # SpaceTrans Release Notes
 
-## Version 1.0.0 (2024-12-XX)
+## Version 1.0.0 (202-07-10)
 
 ### Features
-- ✨ Double-space hotkey translation
+- ✨ triple-space hotkey translation
 - 🎯 System tray integration with visual feedback
 - 🔧 Multiple translation engines (Youdao, Gemini)
 - ⚙️ GUI settings configuration
@@ -13,7 +13,7 @@
 ### Installation
 1. Download `SpaceTrans-v1.0.0-win-x64.zip`
 2. Extract to desired folder
-3. Run `SpaceTrans.exe`
+3. Run `SpaceTrans-Tray.exe`
 4. Configure translation engine in settings
 
 ### Configuration
@@ -23,9 +23,9 @@
 - Test connection before use
 
 ### Usage
-- **Tray Mode**: `SpaceTrans.exe` (default)
-- **Console Mode**: `SpaceTrans.exe --console`
-- **Translation**: Select text + double-press Space
+- **Console Mode**: `SpaceTrans-CLI.exe` (default)
+- **Tray Mode**: `SpaceTrans-Tray.exe`
+- **Translation**: Type + triple-press Space
 
 ### Requirements
 - Windows 7.0 or higher

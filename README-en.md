@@ -132,7 +132,7 @@ SpaceTrans automatically logs all activities to help with debugging and monitori
 
 - **triple Space**: Translate selected text
 - **Tray Menu**: Toggle hotkey on/off, open log file, access settings
-- **triple-click Tray Icon**: Open settings directly
+- **double-click Tray Icon**: Open settings directly
 
 ## Translation Engines
 
