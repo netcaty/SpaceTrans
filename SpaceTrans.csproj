@@ -78,8 +78,8 @@
 
   <Target Name="Package" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)'!=''">
     <PropertyGroup>
-      <PackageDir>dist\package</PackageDir>
-      <ReleaseFile>releases\$(AssemblyName)-v$(Version)-$(RuntimeIdentifier).zip</ReleaseFile>
+      <PackageDir>$(PublishDir)package</PackageDir>
+      <ReleaseFile>releases\$(AssemblyName)$(dep)-v$(Version)-$(RuntimeIdentifier).zip</ReleaseFile>
     </PropertyGroup>
     
     <Message Text="📦 Creating release package..." Importance="high" />
@@ -128,7 +128,7 @@
     <Message Text="🚀 Building Tray version..." Importance="high" />
     <MSBuild Projects="$(MSBuildProjectFile)" 
              Targets="Publish" 
-             Properties="Configuration=release;Type=tray;RuntimeIdentifier=win-x64;
+             Properties="Configuration=release;Type=tray;RuntimeIdentifier=win-x64;dep=-net8;
              SelfContained=false;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true;PublishDir=dist\tray-net8\" />
   </Target>
 

@@ -1,0 +1,37 @@
+name: Build and Release .NET Project
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送 tag 如 v1.0.0 时触发
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          version: '8.0' # 根据你的项目版本调整
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish application and Archive to ZIP
+        run: |
+          dotnet msbuild -t:ReleaseBoth
+          dotnet msbuild -t:ReleaseTray-net8
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: releases/*.zip
+          generate_release_notes: true
