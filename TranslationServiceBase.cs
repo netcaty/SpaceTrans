@@ -14,28 +14,32 @@ namespace SpaceTrans
         protected const int WH_KEYBOARD_LL = 13;
         protected const int WM_KEYDOWN = 0x0100;
         protected const int VK_SPACE = 0x20;
+        protected const int VK_C = 0x43; // 新增
 
         protected static DateTime lastSpaceTime = DateTime.MinValue;
         protected static DateTime secondLastSpaceTime = DateTime.MinValue;
+        protected static DateTime lastCtrlCTime = DateTime.MinValue; // 新增
+        protected static DateTime secondLastCtrlCTime = DateTime.MinValue; // 新增
         protected static LowLevelKeyboardProc _proc;
         protected static IntPtr _hookID = IntPtr.Zero;
         protected static readonly HttpClient httpClient = new();
         protected static TranslationEngineManager engineManager;
         public static ConfigManager configManager;
 
-        #if CLI
+#if CLI
         protected static readonly IPlatformService platformService = PlatformServiceFactory.Create();
-        #endif
+#endif
 
         public bool hotkeyEnabled = true;
-        
+
         // 优化参数
-        protected static int minSpaceInterval = 100; // 最小间隔100ms
-        protected static int maxSpaceInterval = 800; // 最大间隔800ms
+        protected static int minSpaceInterval = 200; // 最小间隔200ms（原100ms）
+        protected static int maxSpaceInterval = 500; // 最大间隔500ms（原800ms）
         protected static bool requireTextSelection = true; // 需要有文本选择才触发
         protected static DateTime lastTranslationTime = DateTime.MinValue;
         protected static int cooldownMs = 2000; // 2秒冷却时间
         protected static int requiredSpaceCount = 3; // 需要连续3次空格
+        protected static int ctrlCIntervalMs = 500; // 双击最大间隔
 
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -55,12 +59,12 @@ namespace SpaceTrans
         public virtual void InitializeEngines()
         {
             Logger.Instance?.Debug("Initializing translation engines...");
-            
+
             configManager = new ConfigManager();
             engineManager = new TranslationEngineManager();
-            
+
             var config = configManager.GetConfig();
-            
+
             // 加载空格优化配置
             var spaceOpt = config.SpaceOptimization;
             minSpaceInterval = spaceOpt.MinInterval;
@@ -68,9 +72,9 @@ namespace SpaceTrans
             cooldownMs = spaceOpt.CooldownMs;
             requireTextSelection = spaceOpt.RequireTextSelection;
             requiredSpaceCount = spaceOpt.RequiredSpaceCount;
-            
+
             Logger.Instance?.Info($"Space optimization loaded: min={minSpaceInterval}ms, max={maxSpaceInterval}ms, cooldown={cooldownMs}ms, requiredCount={requiredSpaceCount}");
-            
+
             // Register Youdao engine
             if (!string.IsNullOrEmpty(config.YoudaoConfig.AppKey))
             {
@@ -81,7 +85,7 @@ namespace SpaceTrans
                 engineManager.RegisterEngine(youdaoEngine);
                 Logger.Instance?.LogEngineEvent("Youdao", "registered");
             }
-            
+
             // Register Gemini engine if API key is provided
             if (!string.IsNullOrEmpty(config.GeminiConfig.ApiKey))
             {
@@ -91,7 +95,7 @@ namespace SpaceTrans
                 engineManager.RegisterEngine(geminiEngine);
                 Logger.Instance?.LogEngineEvent("Gemini", "registered");
             }
-            
+
             // Set current engine
             try
             {
@@ -108,10 +112,10 @@ namespace SpaceTrans
         public virtual void SetupHotkey()
         {
             Logger.Instance?.Debug("Setting up global hotkey...");
-            
+
             _proc = HookCallback;
             _hookID = SetHook(_proc);
-            
+
             if (_hookID == IntPtr.Zero)
             {
                 Logger.Instance?.Error("Failed to install global hotkey");
@@ -140,6 +144,34 @@ namespace SpaceTrans
             }
 
             var vkCode = Marshal.ReadInt32(lParam);
+
+            // 新增：Ctrl+C双击检测
+            if ((Control.ModifierKeys & Keys.Control) == Keys.Control && vkCode == VK_C)
+            {
+                var now = DateTime.UtcNow;
+                var diff = (now - lastCtrlCTime).TotalMilliseconds;
+                var diff2 = (lastCtrlCTime - secondLastCtrlCTime).TotalMilliseconds;
+
+                if (diff < ctrlCIntervalMs && diff2 > 10)
+                {
+                    // 检测到Ctrl+C双击
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            Logger.Instance?.LogHotkeyEvent("Double Ctrl+C detected, triggering translation");
+                            await ProcessDoubleCtrlCTranslation();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance?.Error("Error in ProcessDoubleCtrlCTranslation", ex);
+                        }
+                    });
+                }
+                secondLastCtrlCTime = lastCtrlCTime;
+                lastCtrlCTime = now;
+            }
+
             if (vkCode == VK_SPACE)
             {
                 // 使用高精度时间戳并在后台线程中处理
@@ -183,6 +215,64 @@ namespace SpaceTrans
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
+        // 新增：双击Ctrl+C翻译处理
+        protected async Task ProcessDoubleCtrlCTranslation()
+        {
+            try
+            {
+                await Task.Delay(80); // 等待剪贴板刷新
+                var content = await GetClipboardTextWithRetry();
+                if (string.IsNullOrWhiteSpace(content) || content.Length < 2)
+                {
+                    Logger.Instance?.Debug("No content in clipboard for double Ctrl+C translation");
+                    return;
+                }
+
+                // 判断是否为中文
+                bool isAllChinese = true;
+                foreach (char c in content)
+                {
+                    // 中文字符
+                    if ((c >= 0x4E00 && c <= 0x9FFF))
+                        continue;
+                    // 中文标点（全角）
+                    if ((c >= 0x3000 && c <= 0x303F) || (c >= 0xFF00 && c <= 0xFFEF))
+                        continue;
+                    // 英文标点和空白
+                    if (char.IsPunctuation(c) || char.IsWhiteSpace(c))
+                        continue;
+
+                    // 其它字符（如英文字母、数字、日文、韩文等）
+                    isAllChinese = false;
+                    break;
+                }
+
+                var config = configManager.GetConfig();
+                string targetLang = isAllChinese ? config.TargetLanguage : "zh";
+                var currentEngine = engineManager.GetCurrentEngine();
+                var translatedContent = await engineManager.TranslateAsync(content, "auto", targetLang);
+
+                await SetClipboardTextWithRetry(translatedContent);
+
+                // 可选：弹窗提示
+#if TRAY
+TrayApplication.ShowBalloonTip($"翻译结果（{targetLang}）", translatedContent, ToolTipIcon.Info);
+#else
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"[Double Ctrl+C] {content} => {translatedContent}");
+                Console.ResetColor();
+#endif
+
+                Logger.Instance?.LogTranslationSuccess(content, translatedContent, currentEngine.Name);
+                OnTranslationSuccess($"Double Ctrl+C translated to {targetLang}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance?.Error("Double Ctrl+C translation failed", ex);
+                OnTranslationError($"Double Ctrl+C translation failed: {ex.Message}");
+            }
+        }
+
         protected async virtual Task ProcessDoubleSpaceOptimized()
         {
             try
@@ -210,18 +300,18 @@ namespace SpaceTrans
                 }
 
                 Logger.Instance?.LogTranslationStart(content);
-                
+
                 // 更新最后翻译时间
                 lastTranslationTime = DateTime.UtcNow;
-                
+
                 var config = configManager.GetConfig();
                 var currentEngine = engineManager.GetCurrentEngine();
                 var translatedContent = await engineManager.TranslateAsync(content, "auto", config.TargetLanguage);
-                
+
                 await SetClipboardTextWithRetry(translatedContent);
                 //await SendKeysWithDelay("^a", 50);
                 await SendKeysWithDelay("^v", 50);
-                
+
                 Logger.Instance?.LogTranslationSuccess(content, translatedContent, currentEngine.Name);
                 OnTranslationSuccess($"Translated to {config.TargetLanguage}");
             }
@@ -240,9 +330,9 @@ namespace SpaceTrans
                 await SendKeysWithDelay("^a", 30);
                 await SendKeysWithDelay("^c", 30);
                 await Task.Delay(50); // 等待剪贴板更新
-                
+
                 var content = await GetClipboardTextWithRetry();
-                
+
                 return content;
             }
             catch (Exception)
@@ -255,12 +345,12 @@ namespace SpaceTrans
         {
             if (string.IsNullOrWhiteSpace(text))
                 return false;
-                
+
             // 检查是否全是空格、换行符或标点符号
             var trimmed = text.Trim();
             if (trimmed.Length < 2)
                 return false;
-                
+
             // 检查是否包含字母、数字或中文字符
             foreach (char c in trimmed)
             {
@@ -269,7 +359,7 @@ namespace SpaceTrans
                     return true;
                 }
             }
-            
+
             return false;
         }
 
@@ -384,7 +474,7 @@ namespace SpaceTrans
         protected abstract void OnHotkeyError(string message);
 
         // 配置优化参数的方法
-        public void ConfigureSpaceOptimization(int minInterval = 100, int maxInterval = 800, 
+        public void ConfigureSpaceOptimization(int minInterval = 100, int maxInterval = 800,
             int cooldown = 2000, bool requireSelection = true, int spaceCount = 3)
         {
             minSpaceInterval = minInterval;
@@ -392,7 +482,7 @@ namespace SpaceTrans
             cooldownMs = cooldown;
             requireTextSelection = requireSelection;
             requiredSpaceCount = spaceCount;
-            
+
             Logger.Instance?.Info($"Space optimization configured: min={minInterval}ms, max={maxInterval}ms, cooldown={cooldown}ms, requireSelection={requireSelection}, spaceCount={spaceCount}");
         }
 
@@ -405,7 +495,7 @@ namespace SpaceTrans
         protected virtual void Cleanup()
         {
             Logger.Instance?.Debug("Cleaning up translation service resources");
-            
+
             if (_hookID != IntPtr.Zero)
             {
                 UnhookWindowsHookEx(_hookID);
