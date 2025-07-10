@@ -12,8 +12,14 @@ namespace SpaceTrans
         static void Main(string[] args)
         {
             #if TRAY
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            if (args.Contains("--tray"))
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new TrayApplication());
+                return;
+            }
+            // ...其它启动逻辑...
             #endif
             
             #if CLI

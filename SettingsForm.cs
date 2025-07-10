@@ -19,6 +19,7 @@ namespace SpaceTrans
         private TextBox geminiApiKeyTextBox;
         private Button youdaoSecretToggleButton;
         private Button geminiKeyToggleButton;
+        private CheckBox autoStartCheckBox;
 
         public SettingsForm(ConfigManager configManager)
         {
@@ -186,12 +187,33 @@ namespace SpaceTrans
             };
             openConfigButton.Click += OpenConfigButton_Click;
 
+            // Auto Start Checkbox
+            autoStartCheckBox = new CheckBox
+            {
+                Text = "开机自启（随Windows启动）",
+                Location = new System.Drawing.Point(12, 270),
+                Size = new System.Drawing.Size(200, 23)
+            };
+            autoStartCheckBox.Checked = AutoStartHelper.IsAutoStartEnabled();
+            autoStartCheckBox.CheckedChanged += (s, e) =>
+            {
+                try
+                {
+                    AutoStartHelper.SetAutoStart(autoStartCheckBox.Checked);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("设置开机自启失败: " + ex.Message);
+                }
+            };
+
             // Add controls to form
             this.Controls.AddRange(new Control[] {
                 engineLabel, engineComboBox,
                 targetLanguageLabel, targetLanguageComboBox,
                 youdaoGroupBox, geminiGroupBox,
-                okButton, cancelButton, testButton, openConfigButton
+                okButton, cancelButton, testButton, openConfigButton,
+                autoStartCheckBox
             });
 
             this.AcceptButton = okButton;
