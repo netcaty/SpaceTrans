@@ -22,10 +22,10 @@ jobs:
           version: '8.0' # 根据你的项目版本调整
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore --runtime win-x64
 
       - name: Build project
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore --runtime win-x64
 
       - name: Publish application and Archive to ZIP
         run: |
