@@ -9,6 +9,8 @@ namespace SpaceTrans
 {
     public class TrayApplication : ApplicationContext
     {
+        public static NotifyIcon GlobalTrayIcon; // 新增
+
         private TranslationServiceBase translationService;
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
@@ -19,7 +21,7 @@ namespace SpaceTrans
             var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans", "app.log");
             Logger.Initialize(logPath, LogLevel.Info);
             Logger.Instance.Info("SpaceTrans tray application starting...");
-            
+
             // Rotate log file if it's getting too large
             Logger.Instance.RotateLogIfNeeded();
 
@@ -27,8 +29,10 @@ namespace SpaceTrans
             InitializeComponent();
             translationService.InitializeEngines();
             translationService.SetupHotkey();
-            
+
             Logger.Instance.Info("SpaceTrans tray application started successfully");
+
+            GlobalTrayIcon = trayIcon; // 新增
         }
 
         private void InitializeComponent()
@@ -43,11 +47,11 @@ namespace SpaceTrans
 
             // 创建右键菜单
             trayMenu = new ContextMenuStrip();
-            
+
             var openLogMenuItem = new ToolStripMenuItem("Open Log File", null, OnOpenLogFile);
-            var toggleHotkeyMenuItem = new ToolStripMenuItem("Enable Hotkey", null, OnToggleHotkey) 
-            { 
-                Checked = translationService.hotkeyEnabled 
+            var toggleHotkeyMenuItem = new ToolStripMenuItem("Enable Hotkey", null, OnToggleHotkey)
+            {
+                Checked = translationService.hotkeyEnabled
             };
             var settingsMenuItem = new ToolStripMenuItem("Settings...", null, OnSettings);
             var aboutMenuItem = new ToolStripMenuItem("About", null, OnAbout);
@@ -72,7 +76,7 @@ namespace SpaceTrans
             try
             {
                 var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans", "app.log");
-                
+
                 if (File.Exists(logPath))
                 {
                     // Try to open with default text editor
@@ -81,7 +85,7 @@ namespace SpaceTrans
                         FileName = logPath,
                         UseShellExecute = true
                     });
-                    
+
                     Logger.Instance.Info("Log file opened by user");
                 }
                 else
@@ -89,38 +93,38 @@ namespace SpaceTrans
                     // Create empty log file and open it
                     Directory.CreateDirectory(Path.GetDirectoryName(logPath));
                     File.WriteAllText(logPath, "SpaceTrans log file\n");
-                    
+
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                     {
                         FileName = logPath,
                         UseShellExecute = true
                     });
-                    
+
                     Logger.Instance.Info("Empty log file created and opened");
                 }
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error("Failed to open log file", ex);
-                
+
                 // Fallback: try to open the log directory
                 try
                 {
                     var logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans");
                     Directory.CreateDirectory(logDir);
-                    
+
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                     {
                         FileName = logDir,
                         UseShellExecute = true
                     });
-                    
+
                     Logger.Instance.Info("Log directory opened instead");
                 }
                 catch
                 {
                     // Show error if everything fails
-                    MessageBox.Show($"Could not open log file. Log location:\n{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans", "app.log")}", 
+                    MessageBox.Show($"Could not open log file. Log location:\n{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans", "app.log")}",
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -131,7 +135,7 @@ namespace SpaceTrans
             var menuItem = sender as ToolStripMenuItem;
             translationService.hotkeyEnabled = !translationService.hotkeyEnabled;
             menuItem.Checked = translationService.hotkeyEnabled;
-            
+
             Logger.Instance.Info($"Hotkey {(translationService.hotkeyEnabled ? "enabled" : "disabled")} via tray menu");
         }
 
@@ -220,30 +224,30 @@ namespace SpaceTrans
         {
             // 根据系统DPI设置确定图标尺寸
             int iconSize = GetSystemTrayIconSize();
-            
+
             using var bitmap = new Bitmap(iconSize, iconSize);
             using var graphics = Graphics.FromImage(bitmap);
-            
+
             // 启用抗锯齿
             graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-            
+
             // 设置背景色
             graphics.Clear(backgroundColor);
-            
+
             // 动态计算字体大小
             float fontSize = iconSize * 0.6f; // 图标尺寸的60%
             using var font = new Font("Microsoft YaHei", fontSize, FontStyle.Bold);
             using var brush = new SolidBrush(textColor);
-            
+
             var stringFormat = new StringFormat
             {
                 Alignment = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
-            
+
             graphics.DrawString(text, font, brush, new RectangleF(0, 0, iconSize, iconSize), stringFormat);
-            
+
             // 转换为图标
             IntPtr hIcon = bitmap.GetHicon();
             return Icon.FromHandle(hIcon);
@@ -256,9 +260,9 @@ namespace SpaceTrans
                 // 获取系统DPI
                 using var graphics = Graphics.FromHwnd(IntPtr.Zero);
                 float dpiX = graphics.DpiX;
-                
+
                 // 根据DPI计算合适的图标尺寸
-                if (dpiX <= 96)  return 16;  // 100% DPI
+                if (dpiX <= 96) return 16;  // 100% DPI
                 if (dpiX <= 120) return 20;  // 125% DPI  
                 if (dpiX <= 144) return 24;  // 150% DPI
                 return 32;                   // 200%+ DPI
@@ -285,7 +289,8 @@ namespace SpaceTrans
                         trayIcon.Icon = CreateTextIcon("✓", Color.Green, Color.White);
                         trayIcon.Text = "SpaceTrans - Translation Complete";
                         // 2秒后恢复正常图标
-                        var timer = new System.Threading.Timer(_ => {
+                        var timer = new System.Threading.Timer(_ =>
+                        {
                             if (trayIcon != null)
                             {
                                 trayIcon.Icon = GetTrayIcon();
@@ -297,7 +302,8 @@ namespace SpaceTrans
                         trayIcon.Icon = CreateTextIcon("✗", Color.Red, Color.White);
                         trayIcon.Text = "SpaceTrans - Translation Failed";
                         // 3秒后恢复正常图标
-                        var errorTimer = new System.Threading.Timer(_ => {
+                        var errorTimer = new System.Threading.Timer(_ =>
+                        {
                             if (trayIcon != null)
                             {
                                 trayIcon.Icon = GetTrayIcon();
@@ -369,6 +375,17 @@ namespace SpaceTrans
             {
                 parent?.UpdateTrayIcon("translating");
                 await base.ProcessDoubleSpaceOptimized();
+            }
+        }
+
+        public static void ShowBalloonTip(string title, string text, ToolTipIcon icon = ToolTipIcon.Info)
+        {
+            if (GlobalTrayIcon != null)
+            {
+                GlobalTrayIcon.BalloonTipTitle = title;
+                GlobalTrayIcon.BalloonTipText = text;
+                GlobalTrayIcon.BalloonTipIcon = icon;
+                GlobalTrayIcon.ShowBalloonTip(3000);
             }
         }
     }
