@@ -6,7 +6,9 @@
     "AppSecret": ""
   },
   "GeminiConfig": {
-    "ApiKey": ""
+    "ApiKey": "",
+    "ApiUrl": "https://generativelanguage.googleapis.com",
+    "Model": "gemini-2.5-flash-lite"
   },
   "SpaceOptimization": {
     "MinInterval": 100,

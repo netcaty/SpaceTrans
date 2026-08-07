@@ -9,14 +9,21 @@ namespace SpaceTrans.Engines
     public class GeminiTranslationEngine : ITranslationEngine
     {
         private readonly string apiKey;
+        private readonly string apiUrl;
+        private readonly string model;
         private readonly HttpClient httpClient;
+
+        public const string DefaultApiUrl = "https://generativelanguage.googleapis.com";
+        public const string DefaultModel = "gemini-2.5-flash-lite";
 
         public string Name => "Gemini";
         public string Description => "Google Gemini AI Translation";
 
-        public GeminiTranslationEngine(string apiKey, HttpClient httpClient)
+        public GeminiTranslationEngine(string apiKey, string apiUrl, string model, HttpClient httpClient)
         {
             this.apiKey = apiKey;
+            this.apiUrl = apiUrl;
+            this.model = model;
             this.httpClient = httpClient;
         }
 
@@ -59,10 +66,24 @@ namespace SpaceTrans.Engines
                 var json = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                // 基地址与模型可配置；缺省时使用官方默认值
+                var baseUrl = string.IsNullOrWhiteSpace(apiUrl) ? DefaultApiUrl : apiUrl.TrimEnd('/');
+                var modelName = string.IsNullOrWhiteSpace(model) ? DefaultModel : model;
+
                 HttpResponseMessage response;
                 try
                 {
-                    response = await httpClient.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}", content);
+                    var requestUri = $"{baseUrl}/v1beta/models/{modelName}:generateContent?key={apiKey}";
+                    var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                    {
+                        Content = content
+                    };
+                    // 同时携带 x-goog-api-key 头，兼容使用请求头鉴权的代理/网关（官方 API 也支持）
+                    if (!string.IsNullOrEmpty(apiKey))
+                    {
+                        request.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
+                    }
+                    response = await httpClient.SendAsync(request);
                 }
                 catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
                 {

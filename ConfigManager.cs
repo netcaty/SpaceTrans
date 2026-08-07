@@ -161,7 +161,9 @@ namespace SpaceTrans
                 },
                 GeminiConfig = new GeminiConfig
                 {
-                    ApiKey = ""
+                    ApiKey = "",
+                    ApiUrl = "https://generativelanguage.googleapis.com",
+                    Model = "gemini-2.5-flash-lite"
                 },
                 SpaceOptimization = new SpaceOptimizationConfig
                 {
@@ -195,6 +197,10 @@ namespace SpaceTrans
     public class GeminiConfig
     {
         public string ApiKey { get; set; } = "";
+        // Gemini API 基地址，默认官方地址；可改为兼容的代理/镜像地址
+        public string ApiUrl { get; set; } = "https://generativelanguage.googleapis.com";
+        // 模型名称，默认 gemini-2.5-flash-lite
+        public string Model { get; set; } = "gemini-2.5-flash-lite";
     }
 
     public class SpaceOptimizationConfig

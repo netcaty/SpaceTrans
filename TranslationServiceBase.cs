@@ -91,6 +91,8 @@ namespace SpaceTrans
             {
                 var geminiEngine = new GeminiTranslationEngine(
                     config.GeminiConfig.ApiKey,
+                    config.GeminiConfig.ApiUrl,
+                    config.GeminiConfig.Model,
                     httpClient);
                 engineManager.RegisterEngine(geminiEngine);
                 Logger.Instance?.LogEngineEvent("Gemini", "registered");

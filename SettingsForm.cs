@@ -17,6 +17,8 @@ namespace SpaceTrans
         private TextBox youdaoAppKeyTextBox;
         private TextBox youdaoAppSecretTextBox;
         private TextBox geminiApiKeyTextBox;
+        private TextBox geminiApiUrlTextBox;
+        private TextBox geminiModelTextBox;
         private Button youdaoSecretToggleButton;
         private Button geminiKeyToggleButton;
         private CheckBox autoStartCheckBox;
@@ -32,7 +34,7 @@ namespace SpaceTrans
         private void InitializeComponent()
         {
             this.Text = "SpaceTrans Settings";
-            this.Size = new System.Drawing.Size(450, 400);
+            this.Size = new System.Drawing.Size(450, 455);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -123,7 +125,7 @@ namespace SpaceTrans
             {
                 Text = "Gemini Configuration",
                 Location = new System.Drawing.Point(12, 195),
-                Size = new System.Drawing.Size(400, 60)
+                Size = new System.Drawing.Size(400, 110)
             };
 
             var geminiApiKeyLabel = new Label
@@ -149,15 +151,43 @@ namespace SpaceTrans
             };
             geminiKeyToggleButton.Click += (s, e) => TogglePasswordVisibility(geminiApiKeyTextBox, geminiKeyToggleButton);
 
+            var geminiApiUrlLabel = new Label
+            {
+                Text = "API URL:",
+                Location = new System.Drawing.Point(10, 55),
+                Size = new System.Drawing.Size(80, 23)
+            };
+
+            geminiApiUrlTextBox = new TextBox
+            {
+                Location = new System.Drawing.Point(100, 52),
+                Size = new System.Drawing.Size(280, 23)
+            };
+
+            var geminiModelLabel = new Label
+            {
+                Text = "Model:",
+                Location = new System.Drawing.Point(10, 85),
+                Size = new System.Drawing.Size(80, 23)
+            };
+
+            geminiModelTextBox = new TextBox
+            {
+                Location = new System.Drawing.Point(100, 82),
+                Size = new System.Drawing.Size(280, 23)
+            };
+
             geminiGroupBox.Controls.AddRange(new Control[] {
-                geminiApiKeyLabel, geminiApiKeyTextBox, geminiKeyToggleButton
+                geminiApiKeyLabel, geminiApiKeyTextBox, geminiKeyToggleButton,
+                geminiApiUrlLabel, geminiApiUrlTextBox,
+                geminiModelLabel, geminiModelTextBox
             });
 
             // Buttons
             var okButton = new Button
             {
                 Text = "OK",
-                Location = new System.Drawing.Point(250, 320),
+                Location = new System.Drawing.Point(250, 375),
                 Size = new System.Drawing.Size(75, 30),
                 DialogResult = DialogResult.OK
             };
@@ -166,7 +196,7 @@ namespace SpaceTrans
             var cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new System.Drawing.Point(335, 320),
+                Location = new System.Drawing.Point(335, 375),
                 Size = new System.Drawing.Size(75, 30),
                 DialogResult = DialogResult.Cancel
             };
@@ -174,7 +204,7 @@ namespace SpaceTrans
             var testButton = new Button
             {
                 Text = "Test Connection",
-                Location = new System.Drawing.Point(12, 320),
+                Location = new System.Drawing.Point(12, 375),
                 Size = new System.Drawing.Size(120, 30)
             };
             testButton.Click += TestButton_Click;
@@ -182,7 +212,7 @@ namespace SpaceTrans
             var openConfigButton = new Button
             {
                 Text = "Open Config File",
-                Location = new System.Drawing.Point(140, 320),
+                Location = new System.Drawing.Point(140, 375),
                 Size = new System.Drawing.Size(100, 30)
             };
             openConfigButton.Click += OpenConfigButton_Click;
@@ -191,7 +221,7 @@ namespace SpaceTrans
             autoStartCheckBox = new CheckBox
             {
                 Text = "开机自启（随Windows启动）",
-                Location = new System.Drawing.Point(12, 270),
+                Location = new System.Drawing.Point(12, 315),
                 Size = new System.Drawing.Size(200, 23)
             };
             autoStartCheckBox.Checked = AutoStartHelper.IsAutoStartEnabled();
@@ -227,6 +257,8 @@ namespace SpaceTrans
             youdaoAppKeyTextBox.Text = config.YoudaoConfig.AppKey;
             youdaoAppSecretTextBox.Text = string.IsNullOrEmpty(config.YoudaoConfig.AppSecret) ? "" : "••••••••••••••••";
             geminiApiKeyTextBox.Text = string.IsNullOrEmpty(config.GeminiConfig.ApiKey) ? "" : "••••••••••••••••";
+            geminiApiUrlTextBox.Text = config.GeminiConfig.ApiUrl;
+            geminiModelTextBox.Text = config.GeminiConfig.Model;
         }
 
         private void TogglePasswordVisibility(TextBox textBox, Button toggleButton)
@@ -318,6 +350,9 @@ namespace SpaceTrans
                     config.GeminiConfig.ApiKey = geminiApiKeyTextBox.Text.Trim();
                 }
 
+                config.GeminiConfig.ApiUrl = geminiApiUrlTextBox.Text.Trim();
+                config.GeminiConfig.Model = geminiModelTextBox.Text.Trim();
+
                 // Save configuration
                 configManager.SaveConfig(config);
 
@@ -379,7 +414,9 @@ namespace SpaceTrans
                             return;
                         }
 
-                        var geminiEngine = new GeminiTranslationEngine(apiKey, httpClient);
+                        var apiUrl = geminiApiUrlTextBox.Text.Trim();
+                        var model = geminiModelTextBox.Text.Trim();
+                        var geminiEngine = new GeminiTranslationEngine(apiKey, apiUrl, model, httpClient);
                         tempEngineManager.RegisterEngine(geminiEngine);
                     }
 
