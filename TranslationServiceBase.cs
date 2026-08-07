@@ -91,6 +91,8 @@ namespace SpaceTrans
             {
                 var geminiEngine = new GeminiTranslationEngine(
                     config.GeminiConfig.ApiKey,
+                    config.GeminiConfig.ApiUrl,
+                    config.GeminiConfig.Model,
                     httpClient);
                 engineManager.RegisterEngine(geminiEngine);
                 Logger.Instance?.LogEngineEvent("Gemini", "registered");
@@ -218,6 +220,7 @@ namespace SpaceTrans
         // 新增：双击Ctrl+C翻译处理
         protected async Task ProcessDoubleCtrlCTranslation()
         {
+            string engineName = string.Empty;
             try
             {
                 await Task.Delay(80); // 等待剪贴板刷新
@@ -250,7 +253,14 @@ namespace SpaceTrans
                 var config = configManager.GetConfig();
                 string targetLang = isAllChinese ? config.TargetLanguage : "zh";
                 var currentEngine = engineManager.GetCurrentEngine();
+                engineName = currentEngine.Name;
                 var translatedContent = await engineManager.TranslateAsync(content, "auto", targetLang);
+
+                // 防御性检查：翻译结果为空时同样视为失败，避免把空内容写回剪贴板
+                if (string.IsNullOrWhiteSpace(translatedContent))
+                {
+                    throw new InvalidOperationException("Translation result is empty.");
+                }
 
                 await SetClipboardTextWithRetry(translatedContent);
 
@@ -269,12 +279,13 @@ TrayApplication.ShowBalloonTip($"翻译结果（{targetLang}）", translatedCont
             catch (Exception ex)
             {
                 Logger.Instance?.Error("Double Ctrl+C translation failed", ex);
-                OnTranslationError($"Double Ctrl+C translation failed: {ex.Message}");
+                OnTranslationError($"Double Ctrl+C translation failed [{engineName}]: {ex.Message}");
             }
         }
 
         protected async virtual Task ProcessDoubleSpaceOptimized()
         {
+            string engineName = string.Empty;
             try
             {
                 // 预检查：快速获取选中文本长度
@@ -306,7 +317,14 @@ TrayApplication.ShowBalloonTip($"翻译结果（{targetLang}）", translatedCont
 
                 var config = configManager.GetConfig();
                 var currentEngine = engineManager.GetCurrentEngine();
+                engineName = currentEngine.Name;
                 var translatedContent = await engineManager.TranslateAsync(content, "auto", config.TargetLanguage);
+
+                // 防御性检查：翻译结果为空时同样视为失败，避免把空内容写回剪贴板
+                if (string.IsNullOrWhiteSpace(translatedContent))
+                {
+                    throw new InvalidOperationException("Translation result is empty.");
+                }
 
                 await SetClipboardTextWithRetry(translatedContent);
                 //await SendKeysWithDelay("^a", 50);
@@ -318,7 +336,7 @@ TrayApplication.ShowBalloonTip($"翻译结果（{targetLang}）", translatedCont
             catch (Exception ex)
             {
                 Logger.Instance?.Error($"Translation failed during optimized double space processing", ex);
-                OnTranslationError($"Translation failed: {ex.Message}");
+                OnTranslationError($"Translation failed [{engineName}]: {ex.Message}");
             }
         }
 

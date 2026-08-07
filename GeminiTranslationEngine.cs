@@ -9,14 +9,21 @@ namespace SpaceTrans.Engines
     public class GeminiTranslationEngine : ITranslationEngine
     {
         private readonly string apiKey;
+        private readonly string apiUrl;
+        private readonly string model;
         private readonly HttpClient httpClient;
+
+        public const string DefaultApiUrl = "https://generativelanguage.googleapis.com";
+        public const string DefaultModel = "gemini-2.5-flash-lite";
 
         public string Name => "Gemini";
         public string Description => "Google Gemini AI Translation";
 
-        public GeminiTranslationEngine(string apiKey, HttpClient httpClient)
+        public GeminiTranslationEngine(string apiKey, string apiUrl, string model, HttpClient httpClient)
         {
             this.apiKey = apiKey;
+            this.apiUrl = apiUrl;
+            this.model = model;
             this.httpClient = httpClient;
         }
 
@@ -59,10 +66,39 @@ namespace SpaceTrans.Engines
                 var json = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}", content);
+                // 基地址与模型可配置；缺省时使用官方默认值
+                var baseUrl = string.IsNullOrWhiteSpace(apiUrl) ? DefaultApiUrl : apiUrl.TrimEnd('/');
+                var modelName = string.IsNullOrWhiteSpace(model) ? DefaultModel : model;
+
+                HttpResponseMessage response;
+                try
+                {
+                    var requestUri = $"{baseUrl}/v1beta/models/{modelName}:generateContent?key={apiKey}";
+                    var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                    {
+                        Content = content
+                    };
+                    // 同时携带 x-goog-api-key 头，兼容使用请求头鉴权的代理/网关（官方 API 也支持）
+                    if (!string.IsNullOrEmpty(apiKey))
+                    {
+                        request.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
+                    }
+                    response = await httpClient.SendAsync(request);
+                }
+                catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+                {
+                    // 网络层错误（连接失败、SSL 错误、超时等）附加友好提示后抛出，绝不静默返回原文
+                    throw new HttpRequestException($"无法连接 Gemini 服务器（网络错误）：{ex.Message}", ex);
+                }
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 Logger.Instance.Debug($"Gemini response: {responseContent}");
+
+                // 非 2xx 响应（如 API key 无效 403、限流 429、服务端错误 500 等）一律视为翻译失败
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw BuildGeminiHttpException((int)response.StatusCode, responseContent);
+                }
 
                 var jsonDoc = JsonDocument.Parse(responseContent);
                 if (jsonDoc.RootElement.TryGetProperty("candidates", out var candidates) && 
@@ -76,18 +112,59 @@ namespace SpaceTrans.Engines
                         var part = parts[0];
                         if (part.TryGetProperty("text", out var textProp))
                         {
-                            return textProp.GetString()?.Trim() ?? text;
+                            var translated = textProp.GetString()?.Trim();
+                            if (!string.IsNullOrWhiteSpace(translated))
+                            {
+                                return translated;
+                            }
                         }
                     }
                 }
 
-                return text;
+                // 响应缺少翻译结果时同样视为失败，绝不把原文当作翻译结果返回
+                throw new InvalidOperationException("Gemini returned an empty translation or an unexpected response format.");
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error($"Gemini translation error: {ex.Message}");
-                return text;
+                Logger.Instance.Error($"Gemini translation error: {ex.Message}", ex);
+                throw;
             }
+        }
+
+        // 解析 Gemini 错误响应体（{ "error": { "code", "message", "status" } }），构造带状态码和服务器错误信息的异常
+        private static Exception BuildGeminiHttpException(int statusCode, string responseContent)
+        {
+            var message = string.Empty;
+            var status = string.Empty;
+            try
+            {
+                using var jsonDoc = JsonDocument.Parse(responseContent);
+                if (jsonDoc.RootElement.TryGetProperty("error", out var error))
+                {
+                    if (error.TryGetProperty("message", out var msgProp))
+                    {
+                        message = msgProp.GetString() ?? string.Empty;
+                    }
+                    if (error.TryGetProperty("status", out var statusProp))
+                    {
+                        status = statusProp.GetString() ?? string.Empty;
+                    }
+                }
+            }
+            catch
+            {
+                // 响应体不是合法 JSON 时退回原始内容片段
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = string.IsNullOrEmpty(responseContent)
+                    ? "no response body"
+                    : (responseContent.Length > 200 ? responseContent[..200] + "..." : responseContent);
+            }
+
+            var statusSuffix = string.IsNullOrWhiteSpace(status) ? string.Empty : $" ({status})";
+            return new HttpRequestException($"Gemini API 错误 (HTTP {statusCode}){statusSuffix}: {message}");
         }
 
         private static string ConvertLanguageCode(string languageCode)

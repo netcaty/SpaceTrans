@@ -353,6 +353,8 @@ namespace SpaceTrans
             protected override void OnTranslationError(string message)
             {
                 parent?.UpdateTrayIcon("error");
+                // 弹窗提示，让用户直接看到失败原因（网络错误、HTTP 状态码错误、空结果等）
+                TrayApplication.ShowBalloonTip("翻译失败", message, ToolTipIcon.Error);
                 parent?.LogEvent($"Translation error: {message}", LogLevel.Error);
             }
 
