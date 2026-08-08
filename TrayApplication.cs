@@ -157,8 +157,9 @@ namespace SpaceTrans
 
         private void OnAbout(object sender, EventArgs e)
         {
+            var version = Application.ProductVersion ?? "0.5.1";
             MessageBox.Show(
-                "SpaceTrans v1.0\n\n一款支持全局快捷键的快速翻译工具。\n\n在任意位置输入时连按三次空格即可翻译选中文本。\n\n右键点击托盘图标可打开日志文件和设置。",
+                $"SpaceTrans v{version}\n\n一款支持全局快捷键的快速翻译工具。\n\n在任意位置输入时连按三次空格即可翻译选中文本。\n\n右键点击托盘图标可打开日志文件和设置。",
                 "关于 SpaceTrans",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);

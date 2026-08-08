@@ -26,7 +26,7 @@ dist/
 │   └── config-sample.json
 
 releases/
-└── SpaceTrans-v1.0.0-win-x64.zip    # Final release package
+└── SpaceTrans-v0.5.1-win-x64.zip    # Final release package
 ```
 
 ## Development Workflow

@@ -14,7 +14,7 @@
     <AssemblyDescription>A fast translation tool activated by double-space hotkey</AssemblyDescription>
     <AssemblyCompany>SpaceTrans</AssemblyCompany>
     <Copyright>Copyright © 2024 SpaceTrans</Copyright>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <Type>cli</Type>
   </PropertyGroup>

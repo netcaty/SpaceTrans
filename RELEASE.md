@@ -11,7 +11,7 @@
 - 🎨 Dynamic status indicators
 
 ### Installation
-1. Download `SpaceTrans-v1.0.0-win-x64.zip`
+1. Download `SpaceTrans-v0.5.1-win-x64.zip`
 2. Extract to desired folder
 3. Run `SpaceTrans-Tray.exe`
 4. Configure translation engine in settings
