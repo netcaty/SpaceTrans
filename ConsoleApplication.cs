@@ -55,7 +55,7 @@ namespace SpaceTrans
 
         protected override void OnTranslationSuccess(string message)
         {
-            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] ✅ {message}";
+            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] {message}";
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(coloredMessage);
             Console.ResetColor();
@@ -64,7 +64,7 @@ namespace SpaceTrans
 
         protected override void OnTranslationError(string message)
         {
-            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] ❌ Error: {message}";
+            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] 错误：{message}";
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(coloredMessage);
             Console.ResetColor();
@@ -73,7 +73,7 @@ namespace SpaceTrans
 
         protected override void OnTranslationWarning(string message)
         {
-            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] ⚠️ Warning: {message}";
+            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] 警告：{message}";
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(coloredMessage);
             Console.ResetColor();
@@ -82,7 +82,7 @@ namespace SpaceTrans
 
         protected override void OnEngineError(string message)
         {
-            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] 🔧 Engine Error: {message}";
+            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] 引擎错误：{message}";
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine(coloredMessage);
             Console.ResetColor();
@@ -91,7 +91,7 @@ namespace SpaceTrans
 
         protected override void OnHotkeyError(string message)
         {
-            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] ⌨️ Hotkey Error: {message}";
+            var coloredMessage = $"[{DateTime.Now:HH:mm:ss}] 快捷键错误：{message}";
             Console.ForegroundColor = ConsoleColor.DarkRed;
             Console.WriteLine(coloredMessage);
             Console.ResetColor();

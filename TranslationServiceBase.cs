@@ -107,7 +107,7 @@ namespace SpaceTrans
             catch
             {
                 Logger.Instance?.Warning($"Engine '{config.CurrentEngine}' not available, using default");
-                OnEngineError($"Engine '{config.CurrentEngine}' not available, using default.");
+                OnEngineError($"引擎 '{config.CurrentEngine}' 不可用，使用默认引擎。");
             }
         }
 
@@ -121,7 +121,7 @@ namespace SpaceTrans
             if (_hookID == IntPtr.Zero)
             {
                 Logger.Instance?.Error("Failed to install global hotkey");
-                OnHotkeyError("Failed to install global hotkey");
+                OnHotkeyError("安装全局快捷键失败");
                 hotkeyEnabled = false;
             }
             else
@@ -274,12 +274,12 @@ TrayApplication.ShowBalloonTip($"翻译结果（{targetLang}）", translatedCont
 #endif
 
                 Logger.Instance?.LogTranslationSuccess(content, translatedContent, currentEngine.Name);
-                OnTranslationSuccess($"Double Ctrl+C translated to {targetLang}");
+                OnTranslationSuccess($"双击 Ctrl+C 已翻译为 {targetLang}");
             }
             catch (Exception ex)
             {
                 Logger.Instance?.Error("Double Ctrl+C translation failed", ex);
-                OnTranslationError($"Double Ctrl+C translation failed [{engineName}]: {ex.Message}");
+                OnTranslationError($"双击 Ctrl+C 翻译失败 [{engineName}]：{ex.Message}");
             }
         }
 
@@ -331,12 +331,12 @@ TrayApplication.ShowBalloonTip($"翻译结果（{targetLang}）", translatedCont
                 await SendKeysWithDelay("^v", 50);
 
                 Logger.Instance?.LogTranslationSuccess(content, translatedContent, currentEngine.Name);
-                OnTranslationSuccess($"Translated to {config.TargetLanguage}");
+                OnTranslationSuccess($"已翻译为 {config.TargetLanguage}");
             }
             catch (Exception ex)
             {
                 Logger.Instance?.Error($"Translation failed during optimized double space processing", ex);
-                OnTranslationError($"Translation failed [{engineName}]: {ex.Message}");
+                OnTranslationError($"翻译失败 [{engineName}]：{ex.Message}");
             }
         }
 

@@ -48,14 +48,14 @@ namespace SpaceTrans
             // 创建右键菜单
             trayMenu = new ContextMenuStrip();
 
-            var openLogMenuItem = new ToolStripMenuItem("Open Log File", null, OnOpenLogFile);
-            var toggleHotkeyMenuItem = new ToolStripMenuItem("Enable Hotkey", null, OnToggleHotkey)
+            var openLogMenuItem = new ToolStripMenuItem("打开日志文件", null, OnOpenLogFile);
+            var toggleHotkeyMenuItem = new ToolStripMenuItem("启用快捷键", null, OnToggleHotkey)
             {
                 Checked = translationService.hotkeyEnabled
             };
-            var settingsMenuItem = new ToolStripMenuItem("Settings...", null, OnSettings);
-            var aboutMenuItem = new ToolStripMenuItem("About", null, OnAbout);
-            var exitMenuItem = new ToolStripMenuItem("Exit", null, OnExit);
+            var settingsMenuItem = new ToolStripMenuItem("设置...", null, OnSettings);
+            var aboutMenuItem = new ToolStripMenuItem("关于", null, OnAbout);
+            var exitMenuItem = new ToolStripMenuItem("退出", null, OnExit);
 
             trayMenu.Items.AddRange(new ToolStripItem[] {
                 openLogMenuItem,
@@ -124,8 +124,8 @@ namespace SpaceTrans
                 catch
                 {
                     // Show error if everything fails
-                    MessageBox.Show($"Could not open log file. Log location:\n{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans", "app.log")}",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"无法打开日志文件。日志位置：\n{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SpaceTrans", "app.log")}",
+                        "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -158,8 +158,8 @@ namespace SpaceTrans
         private void OnAbout(object sender, EventArgs e)
         {
             MessageBox.Show(
-                "SpaceTrans v1.0\n\nA fast translation tool with global hotkey support.\n\nTriple-press Space to translate text when you type anywhere.\n\nRight-click tray icon to access log file and settings.",
-                "About SpaceTrans",
+                "SpaceTrans v1.0\n\n一款支持全局快捷键的快速翻译工具。\n\n在任意位置输入时连按三次空格即可翻译选中文本。\n\n右键点击托盘图标可打开日志文件和设置。",
+                "关于 SpaceTrans",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
         }
@@ -283,11 +283,11 @@ namespace SpaceTrans
                 {
                     case "translating":
                         trayIcon.Icon = CreateTextIcon("译", Color.Orange, Color.White);
-                        trayIcon.Text = "SpaceTrans - Translating...";
+                        trayIcon.Text = "SpaceTrans - 翻译中...";
                         break;
                     case "success":
-                        trayIcon.Icon = CreateTextIcon("✓", Color.Green, Color.White);
-                        trayIcon.Text = "SpaceTrans - Translation Complete";
+                        trayIcon.Icon = CreateTextIcon("成", Color.Green, Color.White);
+                        trayIcon.Text = "SpaceTrans - 翻译完成";
                         // 2秒后恢复正常图标
                         var timer = new System.Threading.Timer(_ =>
                         {
@@ -299,8 +299,8 @@ namespace SpaceTrans
                         }, null, 2000, System.Threading.Timeout.Infinite);
                         break;
                     case "error":
-                        trayIcon.Icon = CreateTextIcon("✗", Color.Red, Color.White);
-                        trayIcon.Text = "SpaceTrans - Translation Failed";
+                        trayIcon.Icon = CreateTextIcon("错", Color.Red, Color.White);
+                        trayIcon.Text = "SpaceTrans - 翻译失败";
                         // 3秒后恢复正常图标
                         var errorTimer = new System.Threading.Timer(_ =>
                         {

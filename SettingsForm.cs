@@ -33,17 +33,19 @@ namespace SpaceTrans
 
         private void InitializeComponent()
         {
-            this.Text = "SpaceTrans Settings";
-            this.Size = new System.Drawing.Size(450, 455);
+            this.Text = "SpaceTrans 设置";
+            this.Size = new System.Drawing.Size(480, 490);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.AutoScaleMode = AutoScaleMode.Font;
+            this.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
 
             // Create controls
             var engineLabel = new Label
             {
-                Text = "Translation Engine:",
+                Text = "翻译引擎：",
                 Location = new System.Drawing.Point(12, 15),
                 Size = new System.Drawing.Size(120, 23)
             };
@@ -51,14 +53,14 @@ namespace SpaceTrans
             engineComboBox = new ComboBox
             {
                 Location = new System.Drawing.Point(140, 12),
-                Size = new System.Drawing.Size(200, 23),
+                Size = new System.Drawing.Size(216, 23),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             engineComboBox.Items.AddRange(new[] { "Youdao", "Gemini" });
 
             var targetLanguageLabel = new Label
             {
-                Text = "Target Language:",
+                Text = "目标语言：",
                 Location = new System.Drawing.Point(12, 50),
                 Size = new System.Drawing.Size(120, 23)
             };
@@ -66,7 +68,7 @@ namespace SpaceTrans
             targetLanguageComboBox = new ComboBox
             {
                 Location = new System.Drawing.Point(140, 47),
-                Size = new System.Drawing.Size(200, 23),
+                Size = new System.Drawing.Size(216, 23),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             targetLanguageComboBox.Items.AddRange(new[] { "en", "zh", "ja", "ko", "fr", "de", "es", "ru" });
@@ -74,14 +76,14 @@ namespace SpaceTrans
             // Youdao Configuration
             var youdaoGroupBox = new GroupBox
             {
-                Text = "Youdao Configuration",
+                Text = "有道配置",
                 Location = new System.Drawing.Point(12, 85),
-                Size = new System.Drawing.Size(400, 100)
+                Size = new System.Drawing.Size(436, 100)
             };
 
             var youdaoAppKeyLabel = new Label
             {
-                Text = "App Key:",
+                Text = "App Key：",
                 Location = new System.Drawing.Point(10, 25),
                 Size = new System.Drawing.Size(80, 23)
             };
@@ -89,12 +91,12 @@ namespace SpaceTrans
             youdaoAppKeyTextBox = new TextBox
             {
                 Location = new System.Drawing.Point(100, 22),
-                Size = new System.Drawing.Size(280, 23)
+                Size = new System.Drawing.Size(316, 23)
             };
 
             var youdaoAppSecretLabel = new Label
             {
-                Text = "App Secret:",
+                Text = "App Secret：",
                 Location = new System.Drawing.Point(10, 55),
                 Size = new System.Drawing.Size(80, 23)
             };
@@ -102,15 +104,15 @@ namespace SpaceTrans
             youdaoAppSecretTextBox = new TextBox
             {
                 Location = new System.Drawing.Point(100, 52),
-                Size = new System.Drawing.Size(250, 23),
+                Size = new System.Drawing.Size(286, 23),
                 UseSystemPasswordChar = true
             };
 
             youdaoSecretToggleButton = new Button
             {
-                Text = "👁",
-                Location = new System.Drawing.Point(355, 52),
-                Size = new System.Drawing.Size(25, 23),
+                Text = "显示",
+                Location = new System.Drawing.Point(391, 52),
+                Size = new System.Drawing.Size(40, 23),
                 TabStop = false
             };
             youdaoSecretToggleButton.Click += (s, e) => TogglePasswordVisibility(youdaoAppSecretTextBox, youdaoSecretToggleButton);
@@ -123,14 +125,14 @@ namespace SpaceTrans
             // Gemini Configuration
             var geminiGroupBox = new GroupBox
             {
-                Text = "Gemini Configuration",
+                Text = "Gemini 配置",
                 Location = new System.Drawing.Point(12, 195),
-                Size = new System.Drawing.Size(400, 110)
+                Size = new System.Drawing.Size(436, 120)
             };
 
             var geminiApiKeyLabel = new Label
             {
-                Text = "API Key:",
+                Text = "API Key：",
                 Location = new System.Drawing.Point(10, 25),
                 Size = new System.Drawing.Size(80, 23)
             };
@@ -138,22 +140,22 @@ namespace SpaceTrans
             geminiApiKeyTextBox = new TextBox
             {
                 Location = new System.Drawing.Point(100, 22),
-                Size = new System.Drawing.Size(250, 23),
+                Size = new System.Drawing.Size(286, 23),
                 UseSystemPasswordChar = true
             };
 
             geminiKeyToggleButton = new Button
             {
-                Text = "👁",
-                Location = new System.Drawing.Point(355, 22),
-                Size = new System.Drawing.Size(25, 23),
+                Text = "显示",
+                Location = new System.Drawing.Point(391, 22),
+                Size = new System.Drawing.Size(40, 23),
                 TabStop = false
             };
             geminiKeyToggleButton.Click += (s, e) => TogglePasswordVisibility(geminiApiKeyTextBox, geminiKeyToggleButton);
 
             var geminiApiUrlLabel = new Label
             {
-                Text = "API URL:",
+                Text = "API URL：",
                 Location = new System.Drawing.Point(10, 55),
                 Size = new System.Drawing.Size(80, 23)
             };
@@ -161,20 +163,20 @@ namespace SpaceTrans
             geminiApiUrlTextBox = new TextBox
             {
                 Location = new System.Drawing.Point(100, 52),
-                Size = new System.Drawing.Size(280, 23)
+                Size = new System.Drawing.Size(316, 23)
             };
 
             var geminiModelLabel = new Label
             {
-                Text = "Model:",
-                Location = new System.Drawing.Point(10, 85),
+                Text = "模型：",
+                Location = new System.Drawing.Point(10, 88),
                 Size = new System.Drawing.Size(80, 23)
             };
 
             geminiModelTextBox = new TextBox
             {
-                Location = new System.Drawing.Point(100, 82),
-                Size = new System.Drawing.Size(280, 23)
+                Location = new System.Drawing.Point(100, 85),
+                Size = new System.Drawing.Size(316, 23)
             };
 
             geminiGroupBox.Controls.AddRange(new Control[] {
@@ -186,8 +188,8 @@ namespace SpaceTrans
             // Buttons
             var okButton = new Button
             {
-                Text = "OK",
-                Location = new System.Drawing.Point(250, 375),
+                Text = "确定",
+                Location = new System.Drawing.Point(285, 410),
                 Size = new System.Drawing.Size(75, 30),
                 DialogResult = DialogResult.OK
             };
@@ -195,34 +197,34 @@ namespace SpaceTrans
 
             var cancelButton = new Button
             {
-                Text = "Cancel",
-                Location = new System.Drawing.Point(335, 375),
+                Text = "取消",
+                Location = new System.Drawing.Point(365, 410),
                 Size = new System.Drawing.Size(75, 30),
                 DialogResult = DialogResult.Cancel
             };
 
             var testButton = new Button
             {
-                Text = "Test Connection",
-                Location = new System.Drawing.Point(12, 375),
-                Size = new System.Drawing.Size(120, 30)
+                Text = "测试连接",
+                Location = new System.Drawing.Point(12, 410),
+                Size = new System.Drawing.Size(125, 30)
             };
             testButton.Click += TestButton_Click;
 
             var openConfigButton = new Button
             {
-                Text = "Open Config File",
-                Location = new System.Drawing.Point(140, 375),
-                Size = new System.Drawing.Size(100, 30)
+                Text = "打开配置文件",
+                Location = new System.Drawing.Point(142, 410),
+                Size = new System.Drawing.Size(130, 30)
             };
             openConfigButton.Click += OpenConfigButton_Click;
 
             // Auto Start Checkbox
             autoStartCheckBox = new CheckBox
             {
-                Text = "开机自启（随Windows启动）",
-                Location = new System.Drawing.Point(12, 315),
-                Size = new System.Drawing.Size(200, 23)
+                Text = "开机自启（随 Windows 启动）",
+                Location = new System.Drawing.Point(12, 345),
+                Size = new System.Drawing.Size(250, 24)
             };
             autoStartCheckBox.Checked = AutoStartHelper.IsAutoStartEnabled();
             autoStartCheckBox.CheckedChanged += (s, e) =>
@@ -233,7 +235,7 @@ namespace SpaceTrans
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("设置开机自启失败: " + ex.Message);
+                    MessageBox.Show("设置开机自启失败：" + ex.Message);
                 }
             };
 
@@ -266,7 +268,7 @@ namespace SpaceTrans
             if (textBox.UseSystemPasswordChar)
             {
                 textBox.UseSystemPasswordChar = false;
-                toggleButton.Text = "🙈";
+                toggleButton.Text = "隐藏";
                 
                 // Load actual values when showing
                 if (textBox == youdaoAppSecretTextBox)
@@ -281,7 +283,7 @@ namespace SpaceTrans
             else
             {
                 textBox.UseSystemPasswordChar = true;
-                toggleButton.Text = "👁";
+                toggleButton.Text = "显示";
                 
                 // Show placeholder when hiding
                 if (textBox == youdaoAppSecretTextBox)
@@ -302,14 +304,14 @@ namespace SpaceTrans
                 // Validate inputs
                 if (string.IsNullOrWhiteSpace(engineComboBox.SelectedItem?.ToString()))
                 {
-                    MessageBox.Show("Please select a translation engine.", "Validation Error", 
+                    MessageBox.Show("请选择翻译引擎。", "验证错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(targetLanguageComboBox.SelectedItem?.ToString()))
                 {
-                    MessageBox.Show("Please select a target language.", "Validation Error", 
+                    MessageBox.Show("请选择目标语言。", "验证错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -321,7 +323,7 @@ namespace SpaceTrans
                     (string.IsNullOrWhiteSpace(youdaoAppKeyTextBox.Text) || 
                      (string.IsNullOrWhiteSpace(youdaoAppSecretTextBox.Text) && string.IsNullOrWhiteSpace(config.YoudaoConfig.AppSecret))))
                 {
-                    MessageBox.Show("Please provide Youdao App Key and App Secret.", "Validation Error", 
+                    MessageBox.Show("请提供有道 App Key 和 App Secret。", "验证错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -329,7 +331,7 @@ namespace SpaceTrans
                 if (selectedEngine == "Gemini" && 
                     (string.IsNullOrWhiteSpace(geminiApiKeyTextBox.Text) && string.IsNullOrWhiteSpace(config.GeminiConfig.ApiKey)))
                 {
-                    MessageBox.Show("Please provide Gemini API Key.", "Validation Error", 
+                    MessageBox.Show("请提供 Gemini API Key。", "验证错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -361,7 +363,7 @@ namespace SpaceTrans
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving settings: {ex.Message}", "Error", 
+                MessageBox.Show($"保存设置失败：{ex.Message}", "错误", 
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -372,12 +374,12 @@ namespace SpaceTrans
             {
                 var testButton = sender as Button;
                 testButton.Enabled = false;
-                testButton.Text = "Testing...";
+                testButton.Text = "测试中...";
 
                 var selectedEngine = engineComboBox.SelectedItem?.ToString();
                 if (string.IsNullOrEmpty(selectedEngine))
                 {
-                    MessageBox.Show("Please select an engine first.", "Test Error", 
+                    MessageBox.Show("请先选择引擎。", "测试错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -395,7 +397,7 @@ namespace SpaceTrans
                         
                         if (string.IsNullOrWhiteSpace(appKey) || string.IsNullOrWhiteSpace(appSecret))
                         {
-                            MessageBox.Show("Please provide Youdao credentials first.", "Test Error", 
+                            MessageBox.Show("请提供有道凭据。", "测试错误", 
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
@@ -409,7 +411,7 @@ namespace SpaceTrans
                         
                         if (string.IsNullOrWhiteSpace(apiKey))
                         {
-                            MessageBox.Show("Please provide Gemini API key first.", "Test Error", 
+                            MessageBox.Show("请提供 Gemini API Key。", "测试错误", 
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
@@ -425,8 +427,8 @@ namespace SpaceTrans
                     // Test translation
                     var testResult = await tempEngineManager.TranslateAsync("Hello", "en", "zh");
                     
-                    MessageBox.Show($"Test successful!\nTranslation result: {testResult}", 
-                        "Test Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"测试成功！\n翻译结果：{testResult}", 
+                        "测试结果", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 finally
                 {
@@ -435,14 +437,14 @@ namespace SpaceTrans
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Test failed: {ex.Message}", "Test Error", 
+                MessageBox.Show($"测试失败：{ex.Message}", "测试错误", 
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 var testButton = sender as Button;
                 testButton.Enabled = true;
-                testButton.Text = "Test Connection";
+                testButton.Text = "测试连接";
             }
         }
 
@@ -454,14 +456,14 @@ namespace SpaceTrans
                 
                 if (string.IsNullOrEmpty(configFilePath))
                 {
-                    MessageBox.Show("Config file path not found.", "Error", 
+                    MessageBox.Show("未找到配置文件路径。", "错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 if (!File.Exists(configFilePath))
                 {
-                    MessageBox.Show($"Config file does not exist at: {configFilePath}", "Error", 
+                    MessageBox.Show($"配置文件不存在：{configFilePath}", "错误", 
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
@@ -477,7 +479,7 @@ namespace SpaceTrans
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to open config file: {ex.Message}", "Error", 
+                MessageBox.Show($"打开配置文件失败：{ex.Message}", "错误", 
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
